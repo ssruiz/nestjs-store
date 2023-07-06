@@ -1,0 +1,58 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator prismaClassGenerator {
+  provider = "prisma-class-generator"
+  output   = "./generated-models"
+  dryRun   = false
+}
+
+generator erd {
+  provider = "prisma-erd-generator"
+}
+
+model Product {
+  id          Int             @id @default(autoincrement())
+  title       String
+  price       Float           @default(0)
+  description String?
+  slug        String
+  type        String
+  stock       Int             @default(0)
+  sizes       String[]
+  gender      String
+  tags        String[]        @default([])
+  images      ProductImages[]
+  user        User?           @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  userId      Int?
+
+  @@unique([title, slug])
+}
+
+model ProductImages {
+  id Int @id @default(autoincrement())
+
+  url String
+
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  productId Int
+}
+
+model User {
+  id       Int       @id @default(autoincrement())
+  email    String    @unique
+  password String
+  fullname String?
+  isActive Boolean   @default(true)
+  roles    String[]  @default(["user"])
+  products Product[] // products created by user
+}
